@@ -22,6 +22,12 @@ var conversationalResponses = map[string]string{
 }
 
 func getBotResponse(userText string) string {
+	// Check for conversational responses first
+	lowerUserText := strings.ToLower(userText)
+	if response, ok := conversationalResponses[lowerUserText]; ok {
+		return response
+	}
+
 	// Try to extract a mathematical expression from the user's input
 	re := regexp.MustCompile(`(?i)(what is|whats|what's|calculate|compute|evaluate|tell me|solve)\s+(.*)`)
 	matches := re.FindStringSubmatch(userText)
@@ -42,12 +48,5 @@ func getBotResponse(userText string) string {
 		}
 	}
 
-	// If not a valid math expression, check for conversational responses
-	lowerUserText := strings.ToLower(userText)
-	if response, ok := conversationalResponses[lowerUserText]; ok {
-		return response
-	}
-
 	return "I'm sorry, I don't understand that. Please ask me a math question. Start with what is|whats|what's|calculate|compute|evaluate|tell me|solve then the formula"
 }
-
