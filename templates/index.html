@@ -1,125 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <title>MathBot</title>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathBot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-black text-green-400 font-mono">
+    <div class="container mx-auto p-4 flex flex-col h-screen">
+        <header class="text-center py-4">
+            <h1 class="text-4xl font-bold">MathBot</h1>
+        </header>
+        
+        <main id="chat-window" class="flex-grow bg-gray-900 p-4 rounded-lg overflow-y-auto mb-4">
+            <div id="chat-messages" class="space-y-4">
+                <div class="flex justify-start">
+                    <div class="bg-gray-800 p-3 rounded-lg max-w-xs">
+                        <p class="text-sm font-bold mb-1">MathBot</p>
+                        <p class="text-white">Hi, welcome to MathBot! Ask me a math question or say hi. 😄</p>
+                    </div>
+                </div>
+            </div>
+        </main>
 
-<body>
-  <!-- partial:index.partial.html -->
-  <section class="msger">
-    <header class="msger-header">
-      <div class="msger-header-title">
-        <i class="fas fa-calculator"></i> Mathematical Chatbot <i class="fas fa-calculator"></i>
-      </div>
-    </header>
-
-    <main class="msger-chat">
-      <div class="msg left-msg">
-        <div class="msg-img" style="background-image: url(https://image.flaticon.com/icons/svg/327/327779.svg)"></div>
-
-        <div class="msg-bubble">
-          <div class="msg-info">
-            <div class="msg-info-name">MathBot</div>
-            
-          </div>
-
-          <div class="msg-text">
-            Hi, welcome to MathBot! Go ahead and send me a message. 😄
-          </div>
-        </div>
-      </div>
-
-    </main>
-
-    <form class="msger-inputarea">
-      <input type="text" class="msger-input" id="textInput" placeholder="Enter your message...">
-      <button type="submit" class="msger-send-btn">Send</button>
-    </form>
-  </section>
-  <!-- partial -->
-  <script src='https://use.fontawesome.com/releases/v5.0.13/js/all.js'></script>
-  <script>
-
-    const msgerForm = get(".msger-inputarea");
-    const msgerInput = get(".msger-input");
-    const msgerChat = get(".msger-chat");
-
-
-    // Icons made by Freepik from www.flaticon.com
-    const BOT_IMG = "https://image.flaticon.com/icons/svg/327/327779.svg";
-    const PERSON_IMG = "https://image.flaticon.com/icons/svg/145/145867.svg";
-    const BOT_NAME = "MathBot";
-    const PERSON_NAME = "You";
-
-    msgerForm.addEventListener("submit", event => {
-      event.preventDefault();
-
-      const msgText = msgerInput.value;
-      if (!msgText) return;
-
-      appendMessage(PERSON_NAME, PERSON_IMG, "right", msgText);
-      msgerInput.value = "";
-      botResponse(msgText);
-    });
-
-    function appendMessage(name, img, side, text) {
-      //   Simple solution for small apps
-      const msgHTML = `
-<div class="msg ${side}-msg">
-  <div class="msg-img" style="background-image: url(${img})"></div>
-
-  <div class="msg-bubble">
-    <div class="msg-info">
-      <div class="msg-info-name">${name}</div>
-      <div class="msg-info-time">${formatDate(new Date())}</div>
+        <form id="input-form" class="flex gap-4">
+            <input type="text" id="textInput" class="flex-grow bg-gray-800 text-white p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Enter your message...">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">Send</button>
+        </form>
     </div>
 
-    <div class="msg-text">${text}</div>
-  </div>
-</div>
-`;
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            const textInput = $("#textInput");
+            const chatMessages = $("#chat-messages");
+            const chatWindow = $("#chat-window");
+            const inputForm = $("#input-form");
 
-      msgerChat.insertAdjacentHTML("beforeend", msgHTML);
-      msgerChat.scrollTop += 500;
-    }
+            inputForm.on("submit", function(event) {
+                event.preventDefault();
+                const msgText = textInput.val();
+                if (!msgText) return;
 
-    function botResponse(rawText) {
+                appendUserMessage(msgText);
+                textInput.val("");
+                botResponse(msgText);
+            });
 
-      // Bot Response
-      $.get("/get", { msg: rawText }).done(function (data) {
-        console.log(rawText);
-        console.log(data);
-        const msgText = data;
-        appendMessage(BOT_NAME, BOT_IMG, "left", msgText);
+            function appendUserMessage(text) {
+                const msgHTML = `
+                    <div class="flex justify-end">
+                        <div class="bg-green-800 p-3 rounded-lg max-w-xs">
+                            <p class="text-sm font-bold mb-1 text-green-200">You</p>
+                            <p class="text-white">${text}</p>
+                        </div>
+                    </div>
+                `;
+                chatMessages.append(msgHTML);
+                scrollToBottom();
+            }
 
-      });
+            function appendBotMessage(text) {
+                const msgHTML = `
+                    <div class="flex justify-start">
+                        <div class="bg-gray-800 p-3 rounded-lg max-w-xs">
+                            <p class="text-sm font-bold mb-1">MathBot</p>
+                            <p class="text-white">${text}</p>
+                        </div>
+                    </div>
+                `;
+                chatMessages.append(msgHTML);
+                scrollToBottom();
+            }
 
-    }
+            function botResponse(rawText) {
+                $.get("/get", { msg: rawText }).done(function(data) {
+                    appendBotMessage(data);
+                });
+            }
 
-
-    // Utils
-    function get(selector, root = document) {
-      return root.querySelector(selector);
-    }
-
-    function formatDate(date) {
-      const h = "0" + date.getHours();
-      const m = "0" + date.getMinutes();
-
-      return `${h.slice(-2)}:${m.slice(-2)}`;
-    }
-
-
-
-  </script>
-
+            function scrollToBottom() {
+                chatWindow.scrollTop(chatWindow.prop("scrollHeight"));
+            }
+        });
+    </script>
 </body>
-
 </html>

@@ -1,20 +1,24 @@
-#A mathematical chatBot is a program that simulates a conversation between a user and a computer.
-Installations
+# MathBot
 
-pip3 install chatterbot==1.0.2
+A simple chatbot that can answer mathematical questions and engage in small talk.
 
-pip3 install chatterbot_corpus
+## Running the Application
 
-pip3 install flask
+To run the application, you need to have Go installed. You can download it from [here](https://golang.org/dl/).
 
-***To Run***
+Once you have Go installed, you can run the application using the following command:
 
-python3 app.py
+```bash
+go run .
+```
 
-follow the input prompts to get the desired output
+This will start a web server on port 8080. You can access the application by opening your web browser and navigating to `http://localhost:8080`.
 
-***To Test***
+## How it Works
 
-To run all the unittests: python3 -m unittest tests/test_main.py
-To run a specific step's unittest, e.g step 1: python3 -m unittest tests.test_main.MyTestCase.test_greeting
-Note: at the minimum, these (unedited) tests must succeed before you may submit the solution for review.
+The application is built using Go and the following libraries:
+
+*   **net/http**: For creating the web server.
+*   **govaluate**: For evaluating mathematical expressions.
+
+The frontend is built using HTML, Tailwind CSS, and jQuery.
