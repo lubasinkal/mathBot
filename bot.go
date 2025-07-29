@@ -2,55 +2,61 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strings"
 
-	"github.com/Knetic/govaluate"
+	"github.com/expr-lang/expr"
 )
 
 var conversationalResponses = map[string]string{
-	"hi there!":           "hi!",
-	"hi":                  "hi!",
-	"how do you do?":      "i'm cool.",
-	"fine, you?":          "always cool",
-	"i'm ok":              "glad to hear that.",
-	"i'm fine":            "glad to hear that.",
-	"i feel awesome":      "excellent, glad to hear that.",
-	"not so good":         "sorry to hear that.",
-	"what's your name?":   "i'm MathBot. ask me a math question, please.",
-	"pythagorean theorem": "a squared plus b squared equals c squared.",
+	"hi":             "hi!",
+	"how do you do?": "i'm cool.",
+	// ...
 }
 
+var variables = map[string]interface{}{}
+
+var sqrtFn = expr.Function("sqrt", func(params ...any) (any, error) {
+	return math.Sqrt(params[0].(float64)), nil
+}, new(func(float64) float64))
+
+var powFn = expr.Function("pow", func(params ...any) (any, error) {
+	return math.Pow(params[0].(float64), params[1].(float64)), nil
+}, new(func(float64, float64) float64))
+
 func getBotResponse(userText string) string {
-	// Normalize input
-	lowerUserText := strings.ToLower(strings.TrimSpace(userText))
-
-	// Check for conversational responses
-	if response, ok := conversationalResponses[lowerUserText]; ok {
-		return response
+	text := strings.ToLower(strings.TrimSpace(userText))
+	if resp, ok := conversationalResponses[text]; ok {
+		return resp
 	}
 
-	// Try to extract a mathematical expression from the user's input
-	re := regexp.MustCompile(`(?i)(what is|whats|what's|calculate|compute|evaluate|tell me|solve)\s+(.*)`)
-	matches := re.FindStringSubmatch(userText)
+	re := regexp.MustCompile(`(?i)(?:(?:what is|calculate|solve)\s+)?(.+)`)
+	match := re.FindStringSubmatch(userText)
+	exprStr := strings.TrimSpace(match[1])
 
-	var expressionStr string
-	if len(matches) > 2 {
-		expressionStr = matches[2]
-	} else {
-		expressionStr = userText
+	if parts := strings.SplitN(exprStr, "=", 2); len(parts) == 2 {
+		name := strings.TrimSpace(parts[0])
+		valExpr := strings.TrimSpace(parts[1])
+		prog, err := expr.Compile(valExpr, sqrtFn, powFn, expr.Env(variables), expr.AllowUndefinedVariables())
+		if err != nil {
+			return fmt.Sprintf("Invalid expression for %s: %v", name, err)
+		}
+		result, err := expr.Run(prog, variables)
+		if err != nil {
+			return fmt.Sprintf("Error evaluating assignment: %v", err)
+		}
+		variables[name] = result
+		return fmt.Sprintf("Assigned: %s = %v", name, result)
 	}
 
-	// Try to evaluate the expression
-	expression, err := govaluate.NewEvaluableExpression(expressionStr)
+	prog, err := expr.Compile(exprStr, sqrtFn, powFn, expr.Env(variables), expr.AllowUndefinedVariables())
 	if err != nil {
-		return fmt.Sprintf("Sorry, I couldn't parse the math expression: %v", err)
+		return "Sorry, I didn't understand. Try: 'What is 2 + 2?'"
 	}
-
-	result, err := expression.Evaluate(nil)
+	result, err := expr.Run(prog, variables)
 	if err != nil {
-		return fmt.Sprintf("Error evaluating expression: %v", err)
+		return "Hmm... that doesn't compute. Maybe try simpler math or add variable bindings first."
 	}
-
 	return fmt.Sprintf("Answer: %v", result)
 }
