@@ -22,8 +22,10 @@ var conversationalResponses = map[string]string{
 }
 
 func getBotResponse(userText string) string {
-	// Check for conversational responses first
-	lowerUserText := strings.ToLower(userText)
+	// Normalize input
+	lowerUserText := strings.ToLower(strings.TrimSpace(userText))
+
+	// Check for conversational responses
 	if response, ok := conversationalResponses[lowerUserText]; ok {
 		return response
 	}
@@ -39,10 +41,10 @@ func getBotResponse(userText string) string {
 		expressionStr = userText
 	}
 
-	// Try to evaluate the extracted expression
+	// Try to evaluate the expression
 	expression, err := govaluate.NewEvaluableExpression(expressionStr)
 	if err != nil {
-		return fmt.Sprintf("Error parsing expression: %v", err)
+		return fmt.Sprintf("Sorry, I couldn't parse the math expression: %v", err)
 	}
 
 	result, err := expression.Evaluate(nil)
@@ -50,5 +52,5 @@ func getBotResponse(userText string) string {
 		return fmt.Sprintf("Error evaluating expression: %v", err)
 	}
 
-	return fmt.Sprintf("%v", result)
+	return fmt.Sprintf("Answer: %v", result)
 }
