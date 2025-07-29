@@ -29,21 +29,40 @@
         </form>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            const textInput = $("#textInput");
-            const chatMessages = $("#chat-messages");
-            const chatWindow = $("#chat-window");
-            const inputForm = $("#input-form");
+    <style>
+        /* Custom scrollbar for Webkit browsers */
+        #chat-window::-webkit-scrollbar {
+            width: 8px;
+        }
 
-            inputForm.on("submit", function(event) {
+        #chat-window::-webkit-scrollbar-track {
+            background: #1f2937; /* gray-800 */
+            border-radius: 10px;
+        }
+
+        #chat-window::-webkit-scrollbar-thumb {
+            background: #10b981; /* green-500 */
+            border-radius: 10px;
+        }
+
+        #chat-window::-webkit-scrollbar-thumb:hover {
+            background: #059669; /* green-600 */
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const textInput = document.getElementById("textInput");
+            const chatMessages = document.getElementById("chat-messages");
+            const chatWindow = document.getElementById("chat-window");
+            const inputForm = document.getElementById("input-form");
+
+            inputForm.addEventListener("submit", function(event) {
                 event.preventDefault();
-                const msgText = textInput.val();
+                const msgText = textInput.value.trim();
                 if (!msgText) return;
 
                 appendUserMessage(msgText);
-                textInput.val("");
+                textInput.value = "";
                 botResponse(msgText);
             });
 
@@ -56,7 +75,7 @@
                         </div>
                     </div>
                 `;
-                chatMessages.append(msgHTML);
+                chatMessages.insertAdjacentHTML('beforeend', msgHTML);
                 scrollToBottom();
             }
 
@@ -69,18 +88,23 @@
                         </div>
                     </div>
                 `;
-                chatMessages.append(msgHTML);
+                chatMessages.insertAdjacentHTML('beforeend', msgHTML);
                 scrollToBottom();
             }
 
-            function botResponse(rawText) {
-                $.get("/get", { msg: rawText }).done(function(data) {
+            async function botResponse(rawText) {
+                try {
+                    const response = await fetch(`/get?msg=${encodeURIComponent(rawText)}`);
+                    const data = await response.text();
                     appendBotMessage(data);
-                });
+                } catch (error) {
+                    console.error("Error fetching bot response:", error);
+                    appendBotMessage("Oops! Something went wrong. Please try again.");
+                }
             }
 
             function scrollToBottom() {
-                chatWindow.scrollTop(chatWindow.prop("scrollHeight"));
+                chatWindow.scrollTop = chatWindow.scrollHeight;
             }
         });
     </script>

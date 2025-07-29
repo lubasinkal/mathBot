@@ -41,12 +41,14 @@ func getBotResponse(userText string) string {
 
 	// Try to evaluate the extracted expression
 	expression, err := govaluate.NewEvaluableExpression(expressionStr)
-	if err == nil {
-		result, err := expression.Evaluate(nil)
-		if err == nil {
-			return fmt.Sprintf("%v", result)
-		}
+	if err != nil {
+		return fmt.Sprintf("Error parsing expression: %v", err)
 	}
 
-	return "I'm sorry, I don't understand that. Please ask me a math question. Start with what is|whats|what's|calculate|compute|evaluate|tell me|solve then the formula"
+	result, err := expression.Evaluate(nil)
+	if err != nil {
+		return fmt.Sprintf("Error evaluating expression: %v", err)
+	}
+
+	return fmt.Sprintf("%v", result)
 }
